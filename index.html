@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>zombicide-gearup-helper</title>
+    <style>
+        html, body {
+            overscroll-behavior: contain;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 20px;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            padding: 20px 0;
+            box-sizing: border-box;
+
+            background-color: #eee;
+        }
+
+        #phase {
+            display: flex;
+            row-gap: 40px;
+            flex-wrap: wrap;
+        }
+
+        @media (max-width: 600px) { #phase > div img { width: 100px !important; height: 100px !important; } }
+        @media (max-width: 200px) { #phase { width: 100px; } }
+        @media (min-width: 201px) and (max-width: 300px) { #phase { width: 200px; } }
+        @media (min-width: 301px) and (max-width: 400px) { #phase { width: 300px; } }
+        @media (min-width: 401px) and (max-width: 501px) { #phase { width: 400px; } }
+        @media (min-width: 501px) and (max-width: 601px) { #phase { width: 500px; } }
+        @media (min-width: 601px) and (max-width: 801px) { #phase { width: 600px; } }
+        @media (min-width: 801px) and (max-width: 1001px) { #phase { width: 800px; } }
+        @media (min-width: 1001px) and (max-width: 1201px) { #phase { width: 1000px; } }
+        @media (min-width: 1201px) and (max-width: 1401px) { #phase { width: 1200px; } }
+        @media (min-width: 1401px) and (max-width: 1601px) { #phase { width: 1400px; } }
+        @media (min-width: 1601px) and (max-width: 1801px) { #phase { width: 1600px; } }
+
+        #phase > div {
+            display: inline-grid;
+            grid-template-columns: 1fr;
+            grid-template-rows: 1fr 1fr;
+        }
+
+        #phase > div img {
+            width: 200px;
+            height: 200px;
+            object-fit: cover;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 1.2rem;
+            border: 1px solid #333;
+            border-radius: 5px;
+            background-color: #fff;
+            color: #333;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #ccc;
+            color: #333;
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        .card {
+            display: inline-grid;
+            grid-template-columns: 1fr;
+            grid-template-rows: 1fr;
+            animation: spawn 0.2s forwards;
+        }
+
+        .card > img {
+            grid-area: 1 / 1;
+        }
+
+        @keyframes turn-1 {
+            0% { transform: rotateY(0deg); }
+            50% { transform: rotateY(90deg); }
+            100% { transform: rotateY(0deg); }
+        }
+
+        @keyframes turn-2 {
+            0% { opacity: 1; }
+            49.9% { opacity: 1; }
+            50% { opacity: 0; }
+            100% { opacity: 0; }
+        }
+
+        @keyframes spawn {
+            from { translate: 0 40px; scale: 0.95;}
+            to { translate: 0 0; scale: 1;}
+        }
+
+        .card.turned {
+            animation: turn-1 0.8s forwards;
+        }
+
+        .card.turned > :nth-child(2) {
+            animation: turn-2 0.8s forwards;
+        }
+
+        aside {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+    </style>
+</head>
+<body>
+    <main id="phase"></main>
+    <aside>
+        <button id="setup-1">1 Phase Setup</button>
+        <button id="setup-2">2 Phase Setup</button>
+    </aside>
+
+    <script>
+        "use strict"
+
+        const turnCardBack = "./resource/back-turn-card.png"
+        const turnCards = [1,2,3,4,5,6,7,8,9,10].map(x => `./resource/turn-card${x}.png`);
+        const spawnCardBack = "./resource/back-enemy-card.png"
+        const spawnCards = [1,2,3,4,5,6,7].map(x => `./resource/spawn-card${x}.png`);
+        const bossCardBack1 = "./resource/back-phase1.png"
+        const bossCards1 = [1,2,3].map(x => `./resource/phase1-boss-card${x}.png`);
+        const bossCardBack2 = "./resource/back-phase2.png"
+        const bossCards2 = [1,2,3,4].map(x => `./resource/phase2-boss-card${x}.png`);
+
+        const phase = document.getElementById('phase');
+        const setup1 = document.getElementById('setup-1');
+        const setup2 = document.getElementById('setup-2');
+
+
+        function shuffle(array) {
+            // from https://javascript.info/task/shuffle
+            for (let i = array.length - 1; i > 0; i--) {
+                let j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function clearPhase() {
+            phase.innerHTML = '';
+        }
+
+
+        setup1.addEventListener('click', () => {
+            clearPhase();
+            shuffle(turnCards);
+            shuffle(spawnCards);
+
+            for (const i of [0, 1, 2, 3, 4, 5, 6, 7, 8]) {
+                const div = document.createElement('div');
+
+                if (true) {
+                    const card = document.createElement('span');
+                    card.className = "card";
+
+                    const img = document.createElement('img');
+                    img.src = turnCards[i];
+                    card.appendChild(img);
+
+                    const imgBack = document.createElement('img');
+                    imgBack.src = turnCardBack;
+                    card.appendChild(imgBack);
+
+                    div.appendChild(card);
+                }
+
+                if (i >= 2) {
+                    const card = document.createElement('span');
+                    card.className = "card";
+
+                    const img = document.createElement('img');
+                    img.src = spawnCards[i - 2];
+                    card.appendChild(img);
+
+                    const imgBack = document.createElement('img');
+                    imgBack.src = spawnCardBack;
+                    card.appendChild(imgBack);
+
+                    div.appendChild(card);
+                }
+
+                phase.appendChild(div);
+            }
+        });
+
+        setup2.addEventListener('click', () => {
+            clearPhase();
+            shuffle(turnCards);
+            shuffle(bossCards1);
+            shuffle(bossCards2);
+
+            for (const i of [0, 1, 2, 3, 4, 5, 6, 7, 8]) {
+                const div = document.createElement('div');
+
+                if (true) {
+                    const card = document.createElement('span');
+                    card.className = "card";
+
+                    const img = document.createElement('img');
+                    img.src = turnCards[i];
+                    card.appendChild(img);
+
+                    const imgBack = document.createElement('img');
+                    imgBack.src = turnCardBack;
+                    card.appendChild(imgBack);
+
+                    div.appendChild(card);
+                }
+
+                if ([2, 3, 4].includes(i)) {
+                    const card = document.createElement('span');
+                    card.className = "card";
+
+                    const img = document.createElement('img');
+                    img.src = bossCards1[i - 2];
+                    card.appendChild(img);
+
+                    const imgBack = document.createElement('img');
+                    imgBack.src = bossCardBack1;
+                    card.appendChild(imgBack);
+
+                    div.appendChild(card);
+                }
+
+                if ([5, 6, 7, 8].includes(i)) {
+                    const card = document.createElement('span');
+                    card.className = "card";
+
+                    const img = document.createElement('img');
+                    img.src = bossCards2[i - 5];
+                    card.appendChild(img);
+
+                    const imgBack = document.createElement('img');
+                    imgBack.src = bossCardBack2;
+                    card.appendChild(imgBack);
+
+                    div.appendChild(card);
+                }
+
+                phase.appendChild(div);
+            }
+        });
+
+        phase.addEventListener('click', (e) => {
+            const card = e.target.closest('.card');
+            if (!card) return;
+
+            card.classList.toggle('turned');
+        });
+
+        function preloadImages(srcs) {
+            for (const src of srcs) {
+                const img = new Image();
+                img.src = src;
+            }
+        }
+
+        preloadImages([turnCardBack, spawnCardBack, bossCardBack1, bossCardBack2]);
+        preloadImages(turnCards);
+        preloadImages(spawnCards);
+        preloadImages(bossCards1);
+        preloadImages(bossCards2);
+    </script>
+</body>
+</html>
