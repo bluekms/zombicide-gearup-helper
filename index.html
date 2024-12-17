@@ -42,13 +42,13 @@
         @media (min-width: 1401px) and (max-width: 1601px) { #phase { width: 1400px; } }
         @media (min-width: 1601px) and (max-width: 1801px) { #phase { width: 1600px; } }
 
-        #phase>div {
+        #phase > div {
             display: inline-grid;
             grid-template-columns: 1fr;
             grid-template-rows: 1fr 1fr;
         }
 
-        #phase>div img {
+        #phase > div img {
             width: 200px;
             height: 200px;
             object-fit: cover;
@@ -80,7 +80,7 @@
             animation: spawn 0.2s forwards;
         }
 
-        .card>img {
+        .card > img {
             grid-area: 1 / 1;
         }
 
@@ -106,7 +106,7 @@
             animation: turn-1 0.8s forwards;
         }
 
-        .card.turned> :nth-child(2) {
+        .card.turned > :nth-child(2) {
             animation: turn-2 0.8s forwards;
         }
 
@@ -129,13 +129,13 @@
         "use strict"
 
         const turnCardBack = "./resource/back-turn-card.png"
-        const turnCards = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(x => `./resource/turn-card${x}.png`);
-        const spawnCardBack = "./resource/back-spawn-card.png"
-        const spawnCards = [1, 2, 3, 4, 5, 6, 7].map(x => `./resource/spawn-card${x}.png`);
+        const turnCards = [1,2,3,4,5,6,7,8,9,10].map(x => `./resource/turn-card${x}.png`);
+        const spawnCardBack = "./resource/back-enemy-card.png"
+        const spawnCards = [1,2,3,4,5,6,7].map(x => `./resource/spawn-card${x}.png`);
         const bossCardBack1 = "./resource/back-phase1.png"
-        const bossCards1 = [1, 2, 3].map(x => `./resource/phase1-boss-card${x}.png`);
+        const bossCards1 = [1,2,3].map(x => `./resource/phase1-boss-card${x}.png`);
         const bossCardBack2 = "./resource/back-phase2.png"
-        const bossCards2 = [1, 2, 3, 4].map(x => `./resource/phase2-boss-card${x}.png`);
+        const bossCards2 = [1,2,3,4].map(x => `./resource/phase2-boss-card${x}.png`);
 
         const phase = document.getElementById('phase');
         const setup1 = document.getElementById('setup-1');
@@ -282,3 +282,8 @@
     </script>
 </body>
 </html>
+
+
+
+이 코드를 분석하고 다음 기능을 추가해줘 유저가 새로고침 할 경우 "새로고침하면 데이터가 보존되지 않습니다. 정말 새로고침 하시겠습니까?"라는 팝업이 뜨게 만들어줘. 확인/취소 버튼이 존재하며 확인을 할 때에만 새로고침이 진행되고, 취소를 누른다면 새로고침 되지 않아야 한다.
+코드를 전부 다시 알려줄 필요는 없다. 몇 번째 줄 (혹은 어떤 줄 아래)에 이 내용을 추가해라 라는 식으로 추가해야 할 부분만 알려줘.
