@@ -279,22 +279,6 @@
             e.preventDefault();
             e.returnValue = '';
         });
-
-        let backButtonHandled = false;
-
-        window.addEventListener("popstate", (event) => {
-            if (!backButtonHandled) {
-                const confirmMessage = "Are you sure you want to leave this page? Your data may not be retained.";
-                if (confirm(confirmMessage)) {
-                    backButtonHandled = true;
-                    history.back();
-                } else {
-                    history.pushState(null, document.title, location.href);
-                }
-            }
-        });
-
-        history.pushState(null, document.title, location.href);
     </script>
 </body>
 </html>
