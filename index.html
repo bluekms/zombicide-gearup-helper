@@ -162,6 +162,16 @@
             flex-wrap: wrap;
         }
 
+        /* 셋업 전 첫 화면에서는 셋업 버튼만 화면 가운데에 둔다. 위아래 여백도 같게 맞춘다. */
+        body:has(#phase:empty) {
+            justify-content: center;
+            padding-bottom: 52px;
+        }
+
+        body:has(#phase:empty) #phase {
+            display: none;
+        }
+
         #theme-toggle {
             position: fixed;
             top: 8px;
