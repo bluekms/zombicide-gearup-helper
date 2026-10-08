@@ -5,6 +5,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>zombicide-gearup-helper</title>
     <style>
+        :root {
+            color-scheme: light dark;
+            --bg: #eee;
+            --fg: #333;
+            --button-bg: #fff;
+            --button-border: #333;
+            --button-hover-bg: #ccc;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #1d1d1f;
+                --fg: #e4e4e4;
+                --button-bg: #2c2c2f;
+                --button-border: #777;
+                --button-hover-bg: #3d3d42;
+            }
+        }
+
         html, body {
             overscroll-behavior: contain;
         }
@@ -20,7 +39,8 @@
             padding: 20px 0;
             box-sizing: border-box;
 
-            background-color: #eee;
+            background-color: var(--bg);
+            color: var(--fg);
         }
 
         #phase {
@@ -57,16 +77,16 @@
         button {
             padding: 10px 20px;
             font-size: 1.2rem;
-            border: 1px solid #333;
+            border: 1px solid var(--button-border);
             border-radius: 5px;
-            background-color: #fff;
-            color: #333;
+            background-color: var(--button-bg);
+            color: var(--fg);
             cursor: pointer;
         }
 
         button:hover {
-            background-color: #ccc;
-            color: #333;
+            background-color: var(--button-hover-bg);
+            color: var(--fg);
         }
 
         button:active {
