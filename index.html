@@ -131,7 +131,8 @@
         const turnCardBack = "./resource/back-turn-card.png"
         const turnCards = [1,2,3,4,5,6,7,8,9,10].map(x => `./resource/turn-card${x}.png`);
         const spawnCardBack = "./resource/back-spawn-card.png"
-        const spawnCards = [1,2,3,4,5,6,7].map(x => `./resource/spawn-card${x}.png`);
+        // 실물 스폰 카드는 A 3장, B 2장, C 2장이다. 이미지는 글자별로 하나씩만 둔다.
+        const spawnCards = ['a','a','a','b','b','c','c'].map(x => `./resource/spawn-card-${x}.png`);
         const bossCardBack1 = "./resource/back-phase1.png"
         const bossCards1 = [1,2,3].map(x => `./resource/phase1-boss-card${x}.png`);
         const bossCardBack2 = "./resource/back-phase2.png"
