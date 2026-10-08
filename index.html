@@ -12,6 +12,8 @@
             --button-bg: #fff;
             --button-border: #333;
             --button-hover-bg: #ccc;
+            --selected-bg: #333;
+            --selected-fg: #fff;
         }
 
         @media (prefers-color-scheme: dark) {
@@ -21,6 +23,8 @@
                 --button-bg: #2c2c2f;
                 --button-border: #777;
                 --button-hover-bg: #3d3d42;
+                --selected-bg: #e4e4e4;
+                --selected-fg: #1d1d1f;
             }
         }
 
@@ -132,24 +136,64 @@
 
         aside {
             display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .setup-buttons {
+            display: flex;
             gap: 20px;
             justify-content: center;
             flex-wrap: wrap;
+        }
+
+        #mode {
+            display: flex;
+        }
+
+        #mode > button {
+            padding: 6px 16px;
+            font-size: 1rem;
+        }
+
+        #mode > button:first-child {
+            border-radius: 5px 0 0 5px;
+        }
+
+        #mode > button:last-child {
+            border-left: none;
+            border-radius: 0 5px 5px 0;
+        }
+
+        #mode > button[aria-pressed="true"] {
+            background-color: var(--selected-bg);
+            color: var(--selected-fg);
         }
     </style>
 </head>
 <body>
     <main id="phase"></main>
     <aside>
-        <button id="setup-1">1 Phase Setup</button>
-        <button id="setup-2">2 Phase Setup</button>
+        <div id="mode" role="group" aria-label="Difficulty">
+            <button type="button" data-mode="easy">Easy</button>
+            <button type="button" data-mode="normal">Normal</button>
+        </div>
+        <div class="setup-buttons">
+            <button id="setup-1">1 Phase Setup</button>
+            <button id="setup-2">2 Phase Setup</button>
+        </div>
     </aside>
 
     <script>
         "use strict"
 
         const turnCardBack = "./resource/back-turn-card.png"
-        const turnCards = [1,2,3,4,5,6,7,8,9,10].map(x => `./resource/turn-card${x}.png`);
+        const turnCards = [1,2,3,4,5,6,7,8,9,10];
+        const turnCardSrc = n => `./resource/turn-card${n}.png`;
+        // 턴 카드는 10장 중 9장만 깔린다. Easy 에서는 x(1, 4)·노랑(2)·동료(6, 8, 9) 카드가 빠지지 않게 한다.
+        const DEALT_TURN_CARD_COUNT = 9;
+        const EASY_REQUIRED_TURN_CARDS = [1, 2, 4, 6, 8, 9];
         const spawnCardBack = "./resource/back-spawn-card.png"
         // 실물 스폰 카드는 A 3장, B 2장, C 2장이다. 이미지는 글자별로 하나씩만 둔다.
         const spawnCards = ['a','a','a','b','b','c','c'].map(x => `./resource/spawn-card-${x}.png`);
@@ -161,6 +205,9 @@
         const phase = document.getElementById('phase');
         const setup1 = document.getElementById('setup-1');
         const setup2 = document.getElementById('setup-2');
+        const modeButtons = document.querySelectorAll('#mode > button');
+        // bluekms.github.io 아래 다른 페이지와 저장소를 같이 쓰므로 앱 이름을 붙인다.
+        const MODE_STORAGE_KEY = 'zombicide-gearup-helper:mode';
 
 
         function shuffle(array) {
@@ -175,105 +222,92 @@
             phase.innerHTML = '';
         }
 
+        function loadMode() {
+            try {
+                return localStorage.getItem(MODE_STORAGE_KEY) === 'easy' ? 'easy' : 'normal';
+            } catch {
+                return 'normal';
+            }
+        }
 
-        setup1.addEventListener('click', () => {
+        let mode = loadMode();
+
+        function setMode(next) {
+            mode = next;
+            for (const button of modeButtons) {
+                button.setAttribute('aria-pressed', button.dataset.mode === mode);
+            }
+            try {
+                localStorage.setItem(MODE_STORAGE_KEY, mode);
+            } catch {
+                // 저장하지 못해도 이번 접속 동안은 선택이 유지된다.
+            }
+        }
+
+        for (const button of modeButtons) {
+            button.addEventListener('click', () => setMode(button.dataset.mode));
+        }
+        setMode(mode);
+
+        // Easy 에서는 빠지는 카드(덱의 마지막 장)가 EASY_REQUIRED_TURN_CARDS 이면 다시 섞는다.
+        function shuffleTurnCards() {
+            do {
+                shuffle(turnCards);
+            } while (mode === 'easy' && EASY_REQUIRED_TURN_CARDS.includes(turnCards[DEALT_TURN_CARD_COUNT]));
+        }
+
+
+        function makeCard(front, back) {
+            const card = document.createElement('span');
+            card.className = "card";
+
+            const img = document.createElement('img');
+            img.src = front;
+            card.appendChild(img);
+
+            const imgBack = document.createElement('img');
+            imgBack.src = back;
+            card.appendChild(imgBack);
+
+            return card;
+        }
+
+        // 칸마다 턴 카드를 깔고, 아래 칸에 놓을 카드가 있으면(lowerCardAt 이 값을 돌려주면) 그 밑에 붙인다.
+        function dealSlots(lowerCardAt) {
             clearPhase();
-            shuffle(turnCards);
-            shuffle(spawnCards);
 
-            for (const i of [0, 1, 2, 3, 4, 5, 6, 7, 8]) {
+            for (let i = 0; i < DEALT_TURN_CARD_COUNT; i++) {
                 const div = document.createElement('div');
+                div.appendChild(makeCard(turnCardSrc(turnCards[i]), turnCardBack));
 
-                if (true) {
-                    const card = document.createElement('span');
-                    card.className = "card";
-
-                    const img = document.createElement('img');
-                    img.src = turnCards[i];
-                    card.appendChild(img);
-
-                    const imgBack = document.createElement('img');
-                    imgBack.src = turnCardBack;
-                    card.appendChild(imgBack);
-
-                    div.appendChild(card);
-                }
-
-                if (i >= 2) {
-                    const card = document.createElement('span');
-                    card.className = "card";
-
-                    const img = document.createElement('img');
-                    img.src = spawnCards[i - 2];
-                    card.appendChild(img);
-
-                    const imgBack = document.createElement('img');
-                    imgBack.src = spawnCardBack;
-                    card.appendChild(imgBack);
-
-                    div.appendChild(card);
+                const lower = lowerCardAt(i);
+                if (lower) {
+                    div.appendChild(makeCard(lower.front, lower.back));
                 }
 
                 phase.appendChild(div);
             }
+        }
+
+        setup1.addEventListener('click', () => {
+            shuffleTurnCards();
+            shuffle(spawnCards);
+
+            // 스폰 카드는 3번째 칸부터 놓는다.
+            dealSlots(i => i >= 2 ? { front: spawnCards[i - 2], back: spawnCardBack } : null);
         });
 
         setup2.addEventListener('click', () => {
-            clearPhase();
             shuffle(turnCards);
             shuffle(bossCards1);
             shuffle(bossCards2);
 
-            for (const i of [0, 1, 2, 3, 4, 5, 6, 7, 8]) {
-                const div = document.createElement('div');
-
-                if (true) {
-                    const card = document.createElement('span');
-                    card.className = "card";
-
-                    const img = document.createElement('img');
-                    img.src = turnCards[i];
-                    card.appendChild(img);
-
-                    const imgBack = document.createElement('img');
-                    imgBack.src = turnCardBack;
-                    card.appendChild(imgBack);
-
-                    div.appendChild(card);
-                }
-
-                if ([2, 3, 4].includes(i)) {
-                    const card = document.createElement('span');
-                    card.className = "card";
-
-                    const img = document.createElement('img');
-                    img.src = bossCards1[i - 2];
-                    card.appendChild(img);
-
-                    const imgBack = document.createElement('img');
-                    imgBack.src = bossCardBack1;
-                    card.appendChild(imgBack);
-
-                    div.appendChild(card);
-                }
-
-                if ([5, 6, 7, 8].includes(i)) {
-                    const card = document.createElement('span');
-                    card.className = "card";
-
-                    const img = document.createElement('img');
-                    img.src = bossCards2[i - 5];
-                    card.appendChild(img);
-
-                    const imgBack = document.createElement('img');
-                    imgBack.src = bossCardBack2;
-                    card.appendChild(imgBack);
-
-                    div.appendChild(card);
-                }
-
-                phase.appendChild(div);
-            }
+            // 1페이즈 보스는 3~5번째 칸, 2페이즈 보스는 6~9번째 칸에 놓는다.
+            dealSlots(i => {
+                if (i >= 2 && i <= 4) return { front: bossCards1[i - 2], back: bossCardBack1 };
+                if (i >= 5) return { front: bossCards2[i - 5], back: bossCardBack2 };
+                return null;
+            });
         });
 
         phase.addEventListener('click', (e) => {
@@ -291,7 +325,7 @@
         }
 
         preloadImages([turnCardBack, spawnCardBack, bossCardBack1, bossCardBack2]);
-        preloadImages(turnCards);
+        preloadImages(turnCards.map(turnCardSrc));
         preloadImages(spawnCards);
         preloadImages(bossCards1);
         preloadImages(bossCards2);
