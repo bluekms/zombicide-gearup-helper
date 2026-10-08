@@ -12,8 +12,6 @@
             --button-bg: #fff;
             --button-border: #333;
             --button-hover-bg: #ccc;
-            --selected-bg: #333;
-            --selected-fg: #fff;
         }
 
         @media (prefers-color-scheme: dark) {
@@ -23,8 +21,6 @@
                 --button-bg: #2c2c2f;
                 --button-border: #777;
                 --button-hover-bg: #3d3d42;
-                --selected-bg: #e4e4e4;
-                --selected-fg: #1d1d1f;
             }
         }
 
@@ -136,53 +132,18 @@
 
         aside {
             display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .setup-buttons {
-            display: flex;
             gap: 20px;
             justify-content: center;
             flex-wrap: wrap;
-        }
-
-        #mode {
-            display: flex;
-        }
-
-        #mode > button {
-            padding: 6px 16px;
-            font-size: 1rem;
-        }
-
-        #mode > button:first-child {
-            border-radius: 5px 0 0 5px;
-        }
-
-        #mode > button:last-child {
-            border-left: none;
-            border-radius: 0 5px 5px 0;
-        }
-
-        #mode > button[aria-pressed="true"] {
-            background-color: var(--selected-bg);
-            color: var(--selected-fg);
         }
     </style>
 </head>
 <body>
     <main id="phase"></main>
     <aside>
-        <div id="mode" role="group" aria-label="Difficulty">
-            <button type="button" data-mode="easy">Easy</button>
-            <button type="button" data-mode="normal">Normal</button>
-        </div>
-        <div class="setup-buttons">
-            <button id="setup-1">1 Phase Setup</button>
-            <button id="setup-2">2 Phase Setup</button>
-        </div>
+        <button id="setup-1-easy">Easy 1 Phase Setup</button>
+        <button id="setup-1-normal">Normal 1 Phase Setup</button>
+        <button id="setup-2">2 Phase Setup</button>
     </aside>
 
     <script>
@@ -203,11 +164,9 @@
         const bossCards2 = [1,2,3,4].map(x => `./resource/phase2-boss-card${x}.png`);
 
         const phase = document.getElementById('phase');
-        const setup1 = document.getElementById('setup-1');
+        const setup1Easy = document.getElementById('setup-1-easy');
+        const setup1Normal = document.getElementById('setup-1-normal');
         const setup2 = document.getElementById('setup-2');
-        const modeButtons = document.querySelectorAll('#mode > button');
-        // bluekms.github.io 아래 다른 페이지와 저장소를 같이 쓰므로 앱 이름을 붙인다.
-        const MODE_STORAGE_KEY = 'zombicide-gearup-helper:mode';
 
 
         function shuffle(array) {
@@ -222,38 +181,11 @@
             phase.innerHTML = '';
         }
 
-        function loadMode() {
-            try {
-                return localStorage.getItem(MODE_STORAGE_KEY) === 'easy' ? 'easy' : 'normal';
-            } catch {
-                return 'normal';
-            }
-        }
-
-        let mode = loadMode();
-
-        function setMode(next) {
-            mode = next;
-            for (const button of modeButtons) {
-                button.setAttribute('aria-pressed', button.dataset.mode === mode);
-            }
-            try {
-                localStorage.setItem(MODE_STORAGE_KEY, mode);
-            } catch {
-                // 저장하지 못해도 이번 접속 동안은 선택이 유지된다.
-            }
-        }
-
-        for (const button of modeButtons) {
-            button.addEventListener('click', () => setMode(button.dataset.mode));
-        }
-        setMode(mode);
-
         // Easy 에서는 빠지는 카드(덱의 마지막 장)가 EASY_REQUIRED_TURN_CARDS 이면 다시 섞는다.
-        function shuffleTurnCards() {
+        function shuffleTurnCards(easy) {
             do {
                 shuffle(turnCards);
-            } while (mode === 'easy' && EASY_REQUIRED_TURN_CARDS.includes(turnCards[DEALT_TURN_CARD_COUNT]));
+            } while (easy && EASY_REQUIRED_TURN_CARDS.includes(turnCards[DEALT_TURN_CARD_COUNT]));
         }
 
 
@@ -289,13 +221,16 @@
             }
         }
 
-        setup1.addEventListener('click', () => {
-            shuffleTurnCards();
+        function setupPhase1(easy) {
+            shuffleTurnCards(easy);
             shuffle(spawnCards);
 
             // 스폰 카드는 3번째 칸부터 놓는다.
             dealSlots(i => i >= 2 ? { front: spawnCards[i - 2], back: spawnCardBack } : null);
-        });
+        }
+
+        setup1Easy.addEventListener('click', () => setupPhase1(true));
+        setup1Normal.addEventListener('click', () => setupPhase1(false));
 
         setup2.addEventListener('click', () => {
             shuffle(turnCards);
