@@ -4,9 +4,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>zombicide-gearup-helper</title>
+    <script>
+        // bluekms.github.io 아래 다른 페이지와 저장소를 같이 쓰므로 앱 이름을 붙인다.
+        const THEME_STORAGE_KEY = 'zombicide-gearup-helper:theme';
+
+        // 저장된 테마를 첫 화면을 그리기 전에 적용해 깜빡임을 막는다.
+        try {
+            const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+            if (savedTheme === 'light' || savedTheme === 'dark') {
+                document.documentElement.dataset.theme = savedTheme;
+            }
+        } catch {
+            // 저장소를 못 쓰면 시스템 설정을 따른다.
+        }
+    </script>
     <style>
         :root {
-            color-scheme: light dark;
+            color-scheme: light;
             --bg: #eee;
             --fg: #333;
             --button-bg: #fff;
@@ -15,13 +29,23 @@
         }
 
         @media (prefers-color-scheme: dark) {
-            :root {
+            :root:not([data-theme="light"]) {
+                color-scheme: dark;
                 --bg: #1d1d1f;
                 --fg: #e4e4e4;
                 --button-bg: #2c2c2f;
                 --button-border: #777;
                 --button-hover-bg: #3d3d42;
             }
+        }
+
+        :root[data-theme="dark"] {
+            color-scheme: dark;
+            --bg: #1d1d1f;
+            --fg: #e4e4e4;
+            --button-bg: #2c2c2f;
+            --button-border: #777;
+            --button-hover-bg: #3d3d42;
         }
 
         html, body {
@@ -36,7 +60,8 @@
             align-items: center;
             height: 100vh;
             margin: 0;
-            padding: 20px 0;
+            /* 위쪽은 우상단에 고정된 테마 버튼(8px + 36px) 아래로 카드가 내려오도록 비워 둔다. */
+            padding: 52px 0 20px;
             box-sizing: border-box;
 
             background-color: var(--bg);
@@ -136,9 +161,23 @@
             justify-content: center;
             flex-wrap: wrap;
         }
+
+        #theme-toggle {
+            position: fixed;
+            top: 8px;
+            right: 8px;
+            z-index: 1;
+            width: 36px;
+            height: 36px;
+            padding: 0;
+            font-size: 1.1rem;
+            line-height: 1;
+            border-radius: 50%;
+        }
     </style>
 </head>
 <body>
+    <button type="button" id="theme-toggle"></button>
     <main id="phase"></main>
     <aside>
         <button id="setup-1-easy">Easy 1 Phase Setup</button>
@@ -167,6 +206,8 @@
         const setup1Easy = document.getElementById('setup-1-easy');
         const setup1Normal = document.getElementById('setup-1-normal');
         const setup2 = document.getElementById('setup-2');
+        const themeToggle = document.getElementById('theme-toggle');
+        const systemDark = window.matchMedia('(prefers-color-scheme: dark)');
 
 
         function shuffle(array) {
@@ -180,6 +221,35 @@
         function clearPhase() {
             phase.innerHTML = '';
         }
+
+        function currentTheme() {
+            return document.documentElement.dataset.theme || (systemDark.matches ? 'dark' : 'light');
+        }
+
+        function nextTheme() {
+            return currentTheme() === 'dark' ? 'light' : 'dark';
+        }
+
+        // 버튼에는 누르면 바뀔 테마를 보여준다.
+        function updateThemeToggle() {
+            const next = nextTheme();
+            themeToggle.textContent = next === 'dark' ? '🌙' : '☀️';
+            themeToggle.setAttribute('aria-label', `Switch to ${next} theme`);
+            themeToggle.title = `Switch to ${next} theme`;
+        }
+
+        themeToggle.addEventListener('click', () => {
+            const next = nextTheme();
+            document.documentElement.dataset.theme = next;
+            try {
+                localStorage.setItem(THEME_STORAGE_KEY, next);
+            } catch {
+                // 저장하지 못해도 이번 접속 동안은 선택이 유지된다.
+            }
+            updateThemeToggle();
+        });
+        systemDark.addEventListener('change', updateThemeToggle);
+        updateThemeToggle();
 
         // Easy 에서는 빠지는 카드(덱의 마지막 장)가 EASY_REQUIRED_TURN_CARDS 이면 다시 섞는다.
         function shuffleTurnCards(easy) {
